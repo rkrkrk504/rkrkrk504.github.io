@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V's Cyber Network</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cyberpunk&family=Geo&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Rajdhani', sans-serif;
+            background: #000000;
+            color: #55ead4;
+            overflow-x: hidden;
+            min-height: 100%;
+        }
+
+        .cyberpunk-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            z-index: -2;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(85, 234, 212, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(85, 234, 212, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+            animation: gridPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes gridPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        .main-container {
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 3.5rem;
+            font-weight: 700;
+            font-family: 'Rajdhani', monospace;
+            color: #ff0040;
+            text-shadow: 0 0 20px #ff0040, 0 0 40px #ff0040;
+            margin-bottom: 10px;
+            animation: hologramFlicker 3s ease-in-out infinite;
+            letter-spacing: 3px;
+        }
+
+        @keyframes hologramFlicker {
+            0%, 100% { opacity: 1; text-shadow: 0 0 20px #ff0040, 0 0 40px #ff0040; }
+            50% { opacity: 0.8; text-shadow: 0 0 30px #ff0040, 0 0 60px #ff0040; }
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #f3e600;
+            margin-bottom: 30px;
+            opacity: 0.8;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            height: 600px;
+        }
+
+        .tool-panel {
+            background: rgba(85, 234, 212, 0.1);
+            border: 2px solid #55ead4;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(85, 234, 212, 0.3);
+            overflow-y: auto;
+        }
+
+        .panel-title {
+            color: #ff0040;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px #ff0040;
+        }
+
+        .device-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .device-item {
+            background: rgba(255, 0, 64, 0.1);
+            border: 1px solid #ff0040;
+            padding: 12px;
+            cursor: grab;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            user-select: none;
+            color: #f3e600;
+            justify-content: space-between;
+        }
+
+        .device-counter {
+            background: #55ead4;
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            min-width: 20px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(85, 234, 212, 0.5);
+        }
+
+        .device-item:hover {
+            background: rgba(255, 0, 64, 0.2);
+            box-shadow: 0 0 15px rgba(255, 0, 64, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .device-item:active {
+            cursor: grabbing;
+        }
+
+        .canvas-area {
+            background: rgba(85, 234, 212, 0.1);
+            border: 2px solid #55ead4;
+            position: relative;
+            box-shadow: 0 0 30px rgba(85, 234, 212, 0.3);
+            overflow: hidden;
+        }
+
+        .canvas {
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            background-image: 
+                linear-gradient(rgba(85, 234, 212, 0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(85, 234, 212, 0.2) 1px, transparent 1px);
+            background-size: 25px 25px;
+            position: relative;
+            cursor: crosshair;
+        }
+
+        .canvas-label {
+            position: absolute;
+            top: -30px;
+            left: 0;
+            color: #f3e600;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .properties-panel {
+            background: rgba(85, 234, 212, 0.1);
+            border: 2px solid #55ead4;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(85, 234, 212, 0.3);
+            overflow-y: auto;
+        }
+
+        .placed-device {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            cursor: move;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            font-size: 0.7rem;
+            z-index: 10;
+            animation: deviceGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes deviceGlow {
+            0%, 100% { box-shadow: 0 0 15px currentColor; }
+            50% { box-shadow: 0 0 25px currentColor; }
+        }
+
+        .placed-device:hover {
+            transform: scale(1.1);
+            z-index: 20;
+        }
+
+        .placed-device.selected {
+            animation: selectedPulse 1s ease-in-out infinite;
+            transform: scale(1.2);
+            z-index: 30;
+        }
+
+        .placed-device.batch-selected {
+            animation: batchSelectedPulse 1s ease-in-out infinite;
+            transform: scale(1.15);
+            z-index: 25;
+        }
+
+        @keyframes selectedPulse {
+            0%, 100% { box-shadow: 0 0 20px #f3e600, 0 0 40px #f3e600; }
+            50% { box-shadow: 0 0 30px #f3e600, 0 0 60px #f3e600; }
+        }
+
+        @keyframes batchSelectedPulse {
+            0%, 100% { box-shadow: 0 0 20px #55ead4, 0 0 40px #55ead4; }
+            50% { box-shadow: 0 0 30px #55ead4, 0 0 60px #55ead4; }
+        }
+
+        @keyframes feedbackPulse {
+            0% { 
+                opacity: 0; 
+                transform: translate(-50%, -100%) scale(0.8); 
+            }
+            20% { 
+                opacity: 1; 
+                transform: translate(-50%, -100%) scale(1.1); 
+            }
+            100% { 
+                opacity: 0; 
+                transform: translate(-50%, -120%) scale(0.9); 
+            }
+        }
+
+        .modem { 
+            background: transparent; 
+            border: 3px solid #ff0040; 
+            color: #ff0040; 
+        }
+        .switch { 
+            background: transparent; 
+            border: 3px solid #f3e600; 
+            color: #f3e600; 
+        }
+        .pc { 
+            background: transparent; 
+            border: 3px solid #55ead4; 
+            color: #55ead4; 
+        }
+        .phone { 
+            background: transparent; 
+            border: 3px solid #ff0040; 
+            color: #ff0040; 
+        }
+        .server { 
+            background: transparent; 
+            border: 3px solid #f3e600; 
+            color: #f3e600; 
+        }
+        .internet { 
+            background: transparent; 
+            border: 3px solid #55ead4; 
+            color: #55ead4; 
+        }
+
+        .connection {
+            position: absolute;
+            height: 3px;
+            background: linear-gradient(90deg, #f3e600, #ff0040, #f3e600);
+            transform-origin: left center;
+            z-index: 5;
+            animation: dataFlow 2s linear infinite;
+            border-radius: 2px;
+        }
+
+        @keyframes dataFlow {
+            0% { box-shadow: 0 0 5px #f3e600; }
+            50% { box-shadow: 0 0 15px #ff0040; }
+            100% { box-shadow: 0 0 5px #f3e600; }
+        }
+
+        .info-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #55ead4;
+        }
+
+        .info-title {
+            color: #ff0040;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .info-content {
+            color: #f3e600;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            background: #f3e600;
+            border: 1px solid #ff0040;
+            padding: 12px;
+            color: #000;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Rajdhani', sans-serif;
+            text-align: center;
+            border-radius: 20px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(243, 230, 0, 0.4);
+        }
+
+        .danger-btn {
+            background: #ff0040;
+            color: #f3e600;
+        }
+
+        .device-icon {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .drag-preview {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0.8;
+            transform: scale(1.1);
+        }
+
+        .controls-hint {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: #55ead4;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 1200px) {
+            .workspace {
+                grid-template-columns: 250px 1fr 250px;
+            }
+            
+            .title {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .workspace {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 400px auto;
+                height: auto;
+            }
+            
+            .title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cyberpunk-bg"></div>
+    <div class="grid-overlay"></div>
+    
+    <div class="main-container">
+        <div style="background: rgba(0, 0, 0, 0.8); border: 1px solid #55ead4; padding: 20px; margin-bottom: 30px; font-family: 'Rajdhani', monospace; max-width: 800px; margin-left: auto; margin-right: auto;">
+            <div style="color: #55ead4; font-size: 0.9rem; margin-bottom: 10px;">
+                > NETWATCH TERMINAL v2.077 - AUTHORIZED ACCESS ONLY<br>
+                > USER: V_MERC_001 | CLEARANCE: LEGENDARY | LOCATION: NIGHT_CITY<br>
+                > CONNECTION: SECURE | ENCRYPTION: ARASAKA_TOWER_BREACH_PROTOCOL<br>
+                > ================================================
+            </div>
+            <h1 class="title">Ghost in the Grid</h1>
+            <div style="color: #f3e600; font-size: 0.9rem; font-family: 'Rajdhani', monospace;">
+                > SYSTEM: Network Design Terminal - Maine's Crew Legacy Protocol<br>
+                > STATUS: Lucy dreams of the moon while Arasaka Tower looms over Night City<br>
+                > MEMORIAL: David Martinez - Made his last stand at Arasaka Tower against Adam Smasher
+            </div>
+        </div>
+        
+        <div class="workspace">
+            <!-- Tool Panel -->
+            <div class="tool-panel">
+                <div class="panel-title">Device Arsenal</div>
+                <div class="device-list">
+                    <div class="device-item" data-device="modem">
+                        <svg class="device-icon" viewBox="0 0 24 24">
+                            <rect x="2" y="4" width="20" height="4" rx="1"/>
+                            <rect x="2" y="10" width="20" height="4" rx="1"/>
+                            <rect x="2" y="16" width="20" height="4" rx="1"/>
+                            <circle cx="6" cy="6" r="1"/>
+                            <circle cx="6" cy="12" r="1"/>
+                            <circle cx="6" cy="18" r="1"/>
+                        </svg>
+                        <span>Modem</span>
+                        <span class="device-counter" id="counter-modem">1</span>
+                    </div>
+                    <div class="device-item" data-device="switch">
+                        <svg class="device-icon" viewBox="0 0 24 24">
+                            <rect x="2" y="6" width="20" height="12" rx="2"/>
+                            <rect x="4" y="8" width="2" height="8"/>
+                            <rect x="7" y="8" width="2" height="8"/>
+                            <rect x="10" y="8" width="2" height="8"/>
+                            <rect x="13" y="8" width="2" height="8"/>
+                            <rect x="16" y="8" width="2" height="8"/>
+                            <rect x="19" y="8" width="2" height="8"/>
+                        </svg>
+                        <span>Switch</span>
+                        <span class="device-counter" id="counter-switch">1</span>
+                    </div>
+                    <div class="device-item" data-device="pc">
+                        <svg class="device-icon" viewBox="0 0 24 24">
+                            <rect x="2" y="4" width="20" height="12" rx="2"/>
+                            <rect x="4" y="6" width="16" height="8"/>
+                            <circle cx="12" cy="10" r="1"/>
+                        </svg>
+                        <span>PC</span>
+                        <span class="device-counter" id="counter-pc">10</span>
+                    </div>
+                    <div class="device-item" data-device="phone">
+                        <svg class="device-icon" viewBox="0 0 24 24">
+                            <rect x="6" y="2" width="12" height="20" rx="2"/>
+                            <rect x="8" y="4" width="8" height="14"/>
+                            <circle cx="12" cy="20" r="1"/>
+                        </svg>
+                        <span>Phone</span>
+                        <span class="device-counter" id="counter-phone">5</span>
+                    </div>
+                    <div class="device-item" data-device="server">
+                        <svg class="device-icon" viewBox="0 0 24 24">
+                            <rect x="2" y="4" width="20" height="4" rx="1"/>
+                            <rect x="2" y="10" width="20" height="4" rx="1"/>
+                            <rect x="2" y="16" width="20" height="4" rx="1"/>
+                            <circle cx="6" cy="6" r="1"/>
+                            <circle cx="6" cy="12" r="1"/>
+                            <circle cx="6" cy="18" r="1"/>
+                        </svg>
+                        <span>Server</span>
+                        <span class="device-counter" id="counter-server">0</span>
+                    </div>
+                    <div class="device-item" data-device="internet">
+                        <svg class="device-icon" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M2 12h20"/>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        </svg>
+                        <span>Internet</span>
+                        <span class="device-counter" id="counter-internet">1</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canvas Area -->
+            <div class="canvas-area">
+                <div class="canvas-label">Network Design Canvas</div>
+                <div class="canvas" id="canvas">
+                    <div class="controls-hint">
+                        <svg style="width: 12px; height: 12px; display: inline-block; margin-right: 4px; fill: currentColor;" viewBox="0 0 24 24">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                        Hold SHIFT + Click for batch selection<br>
+                        <svg style="width: 12px; height: 12px; display: inline-block; margin-right: 4px; fill: currentColor;" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 1v6m0 10v6m11-7h-6m-10 0H1m15.5-6.5l-4.24 4.24M7.76 7.76L3.52 3.52m12.96 12.96l4.24 4.24M7.76 16.24l-4.24 4.24"/>
+                        </svg>
+                        Devices snap to grid for tidy layouts<br>
+                        <svg style="width: 12px; height: 12px; display: inline-block; margin-right: 4px; fill: currentColor;" viewBox="0 0 24 24">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                        </svg>
+                        Click batch-selected devices to connect all to one point
+                    </div>
+                </div>
+            </div>
+
+            <!-- Properties Panel -->
+            <div class="properties-panel">
+                <div class="panel-title">Arasaka Tower Intel Terminal</div>
+                
+                <div class="info-section">
+                    <div class="info-title">Current Stage</div>
+                    <div class="info-content" id="currentStage">
+                        🛰️ Stage 1: Small Office Network
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="info-title">Mission Brief</div>
+                    <div class="info-content" id="missionBrief">
+                        Design a secure network for 15 employees with internet, 10 PCs, 5 phones, and proper security.
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="info-title">Requirements</div>
+                    <div class="info-content" id="requirements">
+                        • 1 Internet connection<br>
+                        • 10 PCs for workstations<br>
+                        • 5 Phones for mobile work<br>
+                        • Proper network security
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="info-title">Network Stats</div>
+                    <div class="info-content">
+                        Devices: <span id="deviceCount">0</span><br>
+                        Connections: <span id="connectionCount">0</span><br>
+                        Selected: <span id="selectedDevice">None</span><br>
+                        Batch Selected: <span id="batchCount">0</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="action-btn" onclick="validateNetwork()">Validate Network</button>
+                    <button class="action-btn" onclick="nextStage()">Next Stage</button>
+                    <button class="action-btn" onclick="clearSelection()">Clear Selection</button>
+                    <button class="action-btn danger-btn" onclick="clearAll()">Clear All</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Validation Modal -->
+    <div class="modal" id="validationModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); display: none; align-items: center; justify-content: center; z-index: 1000;">
+        <div class="modal-content" style="background: rgba(0, 0, 0, 0.9); border: 2px solid #ff0040; padding: 30px; max-width: 600px; text-align: center; box-shadow: 0 0 50px rgba(255, 0, 64, 0.5);">
+            <h3 id="modalTitle" style="color: #ff0040; font-size: 1.8rem; margin-bottom: 20px;">Network Validation</h3>
+            <div id="modalMessage" style="color: #f3e600; line-height: 1.6; margin-bottom: 20px; text-align: left;"></div>
+            <button class="action-btn" onclick="closeModal()" style="background: #ff0040; color: #f3e600; border: 1px solid #f3e600; padding: 12px 24px; cursor: pointer; font-family: 'Rajdhani', sans-serif;">Close</button>
+        </div>
+    </div>
+
+    <script>
+        let devices = [];
+        let connections = [];
+        let selectedDevice = null;
+        let selectedDevices = new Set();
+        let deviceCounter = 0;
+        let dragPreview = null;
+
+        const canvas = document.getElementById('canvas');
+
+        // Grid snapping function
+        function snapToGrid(value) {
+            const gridSize = 25;
+            return Math.round(value / gridSize) * gridSize;
+        }
+
+        // Show visual feedback when placement is blocked
+        function showBlockedPlacementFeedback(x, y) {
+            const feedback = document.createElement('div');
+            feedback.style.position = 'fixed';
+            feedback.style.left = x + 'px';
+            feedback.style.top = y + 'px';
+            feedback.style.background = '#ff0040';
+            feedback.style.color = '#f3e600';
+            feedback.style.padding = '8px 12px';
+            feedback.style.borderRadius = '4px';
+            feedback.style.fontSize = '0.8rem';
+            feedback.style.fontWeight = '600';
+            feedback.style.zIndex = '9999';
+            feedback.style.pointerEvents = 'none';
+            feedback.style.transform = 'translate(-50%, -100%)';
+            feedback.style.boxShadow = '0 0 20px rgba(255, 0, 64, 0.8)';
+            feedback.textContent = 'PLACEMENT BLOCKED - COUNTER AT 0!';
+            feedback.style.animation = 'feedbackPulse 2s ease-out forwards';
+            
+            document.body.appendChild(feedback);
+            
+            setTimeout(() => {
+                if (feedback.parentNode) {
+                    feedback.remove();
+                }
+            }, 2000);
+        }
+
+        // Initialize drag and drop
+        document.querySelectorAll('.device-item').forEach(item => {
+            item.addEventListener('mousedown', startDrag);
+        });
+
+        function startDrag(e) {
+            e.preventDefault();
+            const deviceType = e.currentTarget.dataset.device;
+            
+            // Check if this device type can be placed
+            const stage = stages[currentStageIndex];
+            const deviceCounts = {};
+            
+            // Count placed devices
+            devices.forEach(device => {
+                deviceCounts[device.type] = (deviceCounts[device.type] || 0) + 1;
+            });
+            
+            const required = stage.validation[deviceType];
+            if (!required) {
+                return;
+            }
+            
+            const placed = deviceCounts[deviceType] || 0;
+            
+            // Don't allow dragging if we've reached the maximum limit
+            if (placed >= required.max) {
+                return;
+            }
+            
+            // Create drag preview
+            dragPreview = e.currentTarget.cloneNode(true);
+            dragPreview.classList.add('drag-preview');
+            document.body.appendChild(dragPreview);
+            
+            const rect = e.currentTarget.getBoundingClientRect();
+            const offsetX = e.clientX - rect.left;
+            const offsetY = e.clientY - rect.top;
+            
+            function updatePreview(e) {
+                dragPreview.style.left = (e.clientX - offsetX) + 'px';
+                dragPreview.style.top = (e.clientY - offsetY) + 'px';
+            }
+            
+            function onMouseMove(e) {
+                updatePreview(e);
+            }
+            
+            function onMouseUp(e) {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+                
+                // Check if dropped on canvas
+                const canvasRect = canvas.getBoundingClientRect();
+                if (e.clientX >= canvasRect.left && e.clientX <= canvasRect.right &&
+                    e.clientY >= canvasRect.top && e.clientY <= canvasRect.bottom) {
+                    
+                    const x = e.clientX - canvasRect.left - 20; // Center the device
+                    const y = e.clientY - canvasRect.top - 20;
+                    const result = createDevice(deviceType, x, y);
+                    
+                    // Show visual feedback if placement was blocked
+                    if (result === false) {
+                        showBlockedPlacementFeedback(e.clientX, e.clientY);
+                    }
+                }
+                
+                if (dragPreview) {
+                    dragPreview.remove();
+                    dragPreview = null;
+                }
+            }
+            
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            updatePreview(e);
+        }
+
+        function createDevice(type, x, y) {
+            // Check if we can place this device type
+            const stage = stages[currentStageIndex];
+            const deviceCounts = {};
+            
+            // Count placed devices
+            devices.forEach(device => {
+                deviceCounts[device.type] = (deviceCounts[device.type] || 0) + 1;
+            });
+            
+            const required = stage.validation[type];
+            if (!required) {
+                console.log(`PLACEMENT BLOCKED: ${type} - not allowed in current stage`);
+                return false;
+            }
+            
+            const placed = deviceCounts[type] || 0;
+            
+            // Don't allow placement if we've reached the maximum limit
+            if (placed >= required.max) {
+                console.log(`PLACEMENT BLOCKED: ${type} - placed: ${placed}, max: ${required.max}`);
+                return false;
+            }
+            
+            deviceCounter++;
+            const snappedX = snapToGrid(Math.max(0, Math.min(x, canvas.offsetWidth - 40)));
+            const snappedY = snapToGrid(Math.max(0, Math.min(y, canvas.offsetHeight - 40)));
+            
+            const device = {
+                id: deviceCounter,
+                type: type,
+                x: snappedX,
+                y: snappedY
+            };
+            
+            devices.push(device);
+            renderDevice(device);
+            updateStats();
+        }
+
+        function renderDevice(device) {
+            const element = document.createElement('div');
+            element.className = `placed-device ${device.type}`;
+            element.style.left = device.x + 'px';
+            element.style.top = device.y + 'px';
+            element.dataset.deviceId = device.id;
+            element.title = `${device.type.toUpperCase()} #${device.id}`;
+            
+            const icons = {
+                modem: 'M',
+                switch: 'S',
+                pc: 'PC',
+                phone: 'PH',
+                server: 'SV',
+                internet: 'NET'
+            };
+            
+            element.textContent = icons[device.type];
+            
+            // Add event listeners
+            element.addEventListener('click', (e) => {
+                e.stopPropagation();
+                handleDeviceClick(device.id, e.shiftKey);
+            });
+            
+            element.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                deleteDevice(device.id);
+            });
+            
+            element.addEventListener('mousedown', (e) => {
+                if (e.button === 0 && !e.shiftKey) { // Left mouse button without shift
+                    startDeviceDrag(e, device);
+                }
+            });
+            
+            canvas.appendChild(element);
+        }
+
+        function startDeviceDrag(e, device) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const element = e.currentTarget;
+            const rect = canvas.getBoundingClientRect();
+            const offsetX = e.clientX - rect.left - device.x;
+            const offsetY = e.clientY - rect.top - device.y;
+            
+            function onMouseMove(e) {
+                const rawX = Math.max(0, Math.min(e.clientX - rect.left - offsetX, canvas.offsetWidth - 40));
+                const rawY = Math.max(0, Math.min(e.clientY - rect.top - offsetY, canvas.offsetHeight - 40));
+                const newX = snapToGrid(rawX);
+                const newY = snapToGrid(rawY);
+                
+                device.x = newX;
+                device.y = newY;
+                element.style.left = newX + 'px';
+                element.style.top = newY + 'px';
+                
+                updateConnections();
+            }
+            
+            function onMouseUp() {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            }
+            
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        }
+
+        function handleDeviceClick(deviceId, shiftKey = false) {
+            if (shiftKey) {
+                // Batch selection mode
+                if (selectedDevices.has(deviceId)) {
+                    selectedDevices.delete(deviceId);
+                } else {
+                    selectedDevices.add(deviceId);
+                }
+                selectedDevice = null;
+                updateDeviceSelection();
+                updateStats();
+            } else if (selectedDevices.size > 0) {
+                // Connect all selected devices to this one
+                selectedDevices.forEach(selectedId => {
+                    if (selectedId !== deviceId) {
+                        createConnection(selectedId, deviceId);
+                    }
+                });
+                selectedDevices.clear();
+                selectedDevice = null;
+                updateDeviceSelection();
+                updateStats();
+            } else if (selectedDevice === null) {
+                // Select first device
+                selectedDevice = deviceId;
+                updateDeviceSelection();
+                updateStats();
+            } else if (selectedDevice === deviceId) {
+                // Deselect if clicking same device
+                selectedDevice = null;
+                updateDeviceSelection();
+                updateStats();
+            } else {
+                // Connect devices
+                createConnection(selectedDevice, deviceId);
+                selectedDevice = null;
+                updateDeviceSelection();
+                updateStats();
+            }
+        }
+
+        function updateDeviceSelection() {
+            document.querySelectorAll('.placed-device').forEach(element => {
+                element.classList.remove('selected', 'batch-selected');
+            });
+            
+            if (selectedDevice !== null) {
+                const element = document.querySelector(`[data-device-id="${selectedDevice}"]`);
+                if (element) {
+                    element.classList.add('selected');
+                }
+            }
+
+            selectedDevices.forEach(deviceId => {
+                const element = document.querySelector(`[data-device-id="${deviceId}"]`);
+                if (element) {
+                    element.classList.add('batch-selected');
+                }
+            });
+        }
+
+        function createConnection(device1Id, device2Id) {
+            // Check if connection already exists
+            const exists = connections.some(conn => 
+                (conn.device1 === device1Id && conn.device2 === device2Id) ||
+                (conn.device1 === device2Id && conn.device2 === device1Id)
+            );
+            
+            if (exists) return;
+            
+            const device1 = devices.find(d => d.id === device1Id);
+            const device2 = devices.find(d => d.id === device2Id);
+            
+            if (!device1 || !device2) return;
+            
+            const connection = {
+                id: Date.now(),
+                device1: device1Id,
+                device2: device2Id,
+                element: null
+            };
+            
+            connections.push(connection);
+            renderConnection(connection);
+        }
+
+        function renderConnection(connection) {
+            const device1 = devices.find(d => d.id === connection.device1);
+            const device2 = devices.find(d => d.id === connection.device2);
+            
+            if (!device1 || !device2) return;
+            
+            // Store connection elements for cleanup
+            connection.elements = [];
+            
+            updateConnectionPosition(null, device1, device2, connection);
+        }
+
+        function updateConnectionPosition(element, device1, device2, connection = null) {
+            // Get device center points (snapped to grid)
+            const x1 = snapToGrid(device1.x + 20);
+            const y1 = snapToGrid(device1.y + 20);
+            const x2 = snapToGrid(device2.x + 20);
+            const y2 = snapToGrid(device2.y + 20);
+            
+            // Clean up old connection elements if updating
+            if (connection && connection.elements) {
+                connection.elements.forEach(el => el.remove());
+                connection.elements = [];
+            }
+            
+            // Create L-shaped connection with two separate line segments
+            if (x1 === x2 && y1 === y2) {
+                // Same position, no connection needed
+                return;
+            }
+            
+            const connectionElements = [];
+            
+            // Calculate offset to avoid overlapping connections
+            const connectionOffset = calculateConnectionOffset(device1, device2, connection);
+            
+            if (x1 === x2) {
+                // Vertical line only
+                const line = document.createElement('div');
+                line.className = 'connection-line';
+                line.style.position = 'absolute';
+                line.style.left = (x1 + connectionOffset) + 'px';
+                line.style.top = Math.min(y1, y2) + 'px';
+                line.style.width = '3px';
+                line.style.height = Math.abs(y2 - y1) + 'px';
+                line.style.background = 'linear-gradient(0deg, #f3e600, #ff0040, #f3e600)';
+                line.style.borderRadius = '2px';
+                line.style.animation = 'dataFlow 2s linear infinite';
+                line.style.zIndex = '5';
+                if (connection) line.dataset.connectionId = connection.id;
+                
+                line.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    if (connection) deleteConnection(connection.id);
+                });
+                
+                canvas.appendChild(line);
+                connectionElements.push(line);
+            } else if (y1 === y2) {
+                // Horizontal line only
+                const line = document.createElement('div');
+                line.className = 'connection-line';
+                line.style.position = 'absolute';
+                line.style.left = Math.min(x1, x2) + 'px';
+                line.style.top = (y1 + connectionOffset) + 'px';
+                line.style.width = Math.abs(x2 - x1) + 'px';
+                line.style.height = '3px';
+                line.style.background = 'linear-gradient(90deg, #f3e600, #ff0040, #f3e600)';
+                line.style.borderRadius = '2px';
+                line.style.animation = 'dataFlow 2s linear infinite';
+                line.style.zIndex = '5';
+                if (connection) line.dataset.connectionId = connection.id;
+                
+                line.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    if (connection) deleteConnection(connection.id);
+                });
+                
+                canvas.appendChild(line);
+                connectionElements.push(line);
+            } else {
+                // L-shaped connection with offset routing
+                const routingOffset = connectionOffset * 5; // Larger offset for L-shaped connections
+                
+                // Choose routing direction based on connection index to avoid overlaps
+                const useAlternateRoute = connectionOffset % 2 === 1;
+                
+                if (useAlternateRoute) {
+                    // Route: vertical first, then horizontal
+                    const vertical = document.createElement('div');
+                    vertical.className = 'connection-line';
+                    vertical.style.position = 'absolute';
+                    vertical.style.left = (x1 + routingOffset) + 'px';
+                    vertical.style.top = Math.min(y1, y2) + 'px';
+                    vertical.style.width = '3px';
+                    vertical.style.height = Math.abs(y2 - y1) + 'px';
+                    vertical.style.background = 'linear-gradient(0deg, #f3e600, #ff0040, #f3e600)';
+                    vertical.style.borderRadius = '2px';
+                    vertical.style.animation = 'dataFlow 2s linear infinite';
+                    vertical.style.zIndex = '5';
+                    if (connection) vertical.dataset.connectionId = connection.id;
+                    
+                    vertical.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        if (connection) deleteConnection(connection.id);
+                    });
+                    
+                    canvas.appendChild(vertical);
+                    connectionElements.push(vertical);
+                    
+                    // Horizontal segment
+                    const horizontal = document.createElement('div');
+                    horizontal.className = 'connection-line';
+                    horizontal.style.position = 'absolute';
+                    horizontal.style.left = Math.min(x1 + routingOffset, x2) + 'px';
+                    horizontal.style.top = (y2 + routingOffset) + 'px';
+                    horizontal.style.width = Math.abs(x2 - (x1 + routingOffset)) + 'px';
+                    horizontal.style.height = '3px';
+                    horizontal.style.background = 'linear-gradient(90deg, #f3e600, #ff0040, #f3e600)';
+                    horizontal.style.borderRadius = '2px';
+                    horizontal.style.animation = 'dataFlow 2s linear infinite';
+                    horizontal.style.zIndex = '5';
+                    if (connection) horizontal.dataset.connectionId = connection.id;
+                    
+                    horizontal.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        if (connection) deleteConnection(connection.id);
+                    });
+                    
+                    canvas.appendChild(horizontal);
+                    connectionElements.push(horizontal);
+                } else {
+                    // Route: horizontal first, then vertical
+                    const horizontal = document.createElement('div');
+                    horizontal.className = 'connection-line';
+                    horizontal.style.position = 'absolute';
+                    horizontal.style.left = Math.min(x1, x2) + 'px';
+                    horizontal.style.top = (y1 + routingOffset) + 'px';
+                    horizontal.style.width = Math.abs(x2 - x1) + 'px';
+                    horizontal.style.height = '3px';
+                    horizontal.style.background = 'linear-gradient(90deg, #f3e600, #ff0040, #f3e600)';
+                    horizontal.style.borderRadius = '2px';
+                    horizontal.style.animation = 'dataFlow 2s linear infinite';
+                    horizontal.style.zIndex = '5';
+                    if (connection) horizontal.dataset.connectionId = connection.id;
+                    
+                    horizontal.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        if (connection) deleteConnection(connection.id);
+                    });
+                    
+                    canvas.appendChild(horizontal);
+                    connectionElements.push(horizontal);
+                    
+                    // Vertical segment
+                    const vertical = document.createElement('div');
+                    vertical.className = 'connection-line';
+                    vertical.style.position = 'absolute';
+                    vertical.style.left = (x2 + routingOffset) + 'px';
+                    vertical.style.top = Math.min(y1 + routingOffset, y2) + 'px';
+                    vertical.style.width = '3px';
+                    vertical.style.height = Math.abs(y2 - (y1 + routingOffset)) + 'px';
+                    vertical.style.background = 'linear-gradient(0deg, #f3e600, #ff0040, #f3e600)';
+                    vertical.style.borderRadius = '2px';
+                    vertical.style.animation = 'dataFlow 2s linear infinite';
+                    vertical.style.zIndex = '5';
+                    if (connection) vertical.dataset.connectionId = connection.id;
+                    
+                    vertical.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        if (connection) deleteConnection(connection.id);
+                    });
+                    
+                    canvas.appendChild(vertical);
+                    connectionElements.push(vertical);
+                }
+            }
+            
+            // Store elements in connection object
+            if (connection) {
+                connection.elements = connectionElements;
+            }
+        }
+
+        function calculateConnectionOffset(device1, device2, currentConnection) {
+            if (!currentConnection) return 0;
+            
+            // Find all existing connections between the same two devices
+            const existingConnections = connections.filter(conn => {
+                if (conn.id === currentConnection.id) return false;
+                return (conn.device1 === device1.id && conn.device2 === device2.id) ||
+                       (conn.device1 === device2.id && conn.device2 === device1.id);
+            });
+            
+            // Find connections that share one device but connect to different devices
+            const conflictingConnections = connections.filter(conn => {
+                if (conn.id === currentConnection.id) return false;
+                
+                const connDevice1 = devices.find(d => d.id === conn.device1);
+                const connDevice2 = devices.find(d => d.id === conn.device2);
+                if (!connDevice1 || !connDevice2) return false;
+                
+                // Check if this connection shares a device and might overlap spatially
+                const sharesDevice = conn.device1 === device1.id || conn.device1 === device2.id ||
+                                   conn.device2 === device1.id || conn.device2 === device2.id;
+                
+                if (!sharesDevice) return false;
+                
+                // Check if the connections might overlap in space
+                const x1 = device1.x + 20;
+                const y1 = device1.y + 20;
+                const x2 = device2.x + 20;
+                const y2 = device2.y + 20;
+                const cx1 = connDevice1.x + 20;
+                const cy1 = connDevice1.y + 20;
+                const cx2 = connDevice2.x + 20;
+                const cy2 = connDevice2.y + 20;
+                
+                // Simple overlap detection - if lines cross the same grid areas
+                const currentPath = `${Math.min(x1, x2)},${Math.min(y1, y2)}-${Math.max(x1, x2)},${Math.max(y1, y2)}`;
+                const conflictPath = `${Math.min(cx1, cx2)},${Math.min(cy1, cy2)}-${Math.max(cx1, cx2)},${Math.max(cy1, cy2)}`;
+                
+                return currentPath === conflictPath;
+            });
+            
+            // Calculate offset based on number of conflicting connections
+            const totalConflicts = existingConnections.length + conflictingConnections.length;
+            return totalConflicts * 6; // 6px offset per conflict
+        }
+
+        function updateConnections() {
+            connections.forEach(connection => {
+                const device1 = devices.find(d => d.id === connection.device1);
+                const device2 = devices.find(d => d.id === connection.device2);
+                
+                if (device1 && device2) {
+                    updateConnectionPosition(null, device1, device2, connection);
+                }
+            });
+        }
+
+        function deleteDevice(deviceId) {
+            // Remove device
+            devices = devices.filter(d => d.id !== deviceId);
+            
+            // Remove device element
+            const element = document.querySelector(`[data-device-id="${deviceId}"]`);
+            if (element) {
+                element.remove();
+            }
+            
+            // Remove connections involving this device
+            connections = connections.filter(conn => {
+                if (conn.device1 === deviceId || conn.device2 === deviceId) {
+                    if (conn.elements) {
+                        conn.elements.forEach(el => el.remove());
+                    }
+                    return false;
+                }
+                return true;
+            });
+            
+            // Clear selection if deleted device was selected
+            if (selectedDevice === deviceId) {
+                selectedDevice = null;
+            }
+            selectedDevices.delete(deviceId);
+            
+            updateStats();
+        }
+
+        function deleteConnection(connectionId) {
+            const connection = connections.find(c => c.id === connectionId);
+            if (connection && connection.elements) {
+                connection.elements.forEach(el => el.remove());
+            }
+            
+            connections = connections.filter(c => c.id !== connectionId);
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('deviceCount').textContent = devices.length;
+            document.getElementById('connectionCount').textContent = connections.length;
+            document.getElementById('batchCount').textContent = selectedDevices.size;
+            
+            if (selectedDevice !== null) {
+                const device = devices.find(d => d.id === selectedDevice);
+                document.getElementById('selectedDevice').textContent = 
+                    device ? `${device.type.toUpperCase()} #${device.id}` : 'None';
+            } else {
+                document.getElementById('selectedDevice').textContent = 'None';
+            }
+            
+            updateDeviceCounters();
+        }
+
+        function clearSelection() {
+            selectedDevice = null;
+            selectedDevices.clear();
+            updateDeviceSelection();
+            updateStats();
+        }
+
+        function clearAll() {
+            devices = [];
+            connections = [];
+            selectedDevice = null;
+            selectedDevices.clear();
+            deviceCounter = 0;
+            
+            canvas.innerHTML = '';
+            // Re-add the controls hint
+            const hint = document.createElement('div');
+            hint.className = 'controls-hint';
+            hint.innerHTML = `
+                <svg style="width: 12px; height: 12px; display: inline-block; margin-right: 4px; fill: currentColor;" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                Hold SHIFT + Click for batch selection<br>
+                <svg style="width: 12px; height: 12px; display: inline-block; margin-right: 4px; fill: currentColor;" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M12 1v6m0 10v6m11-7h-6m-10 0H1m15.5-6.5l-4.24 4.24M7.76 7.76L3.52 3.52m12.96 12.96l4.24 4.24M7.76 16.24l-4.24 4.24"/>
+                </svg>
+                Devices snap to grid for tidy layouts<br>
+                <svg style="width: 12px; height: 12px; display: inline-block; margin-right: 4px; fill: currentColor;" viewBox="0 0 24 24">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+                Click batch-selected devices to connect all to one point
+            `;
+            canvas.appendChild(hint);
+            
+            updateStats();
+        }
+
+        // Clear selection when clicking on empty canvas
+        canvas.addEventListener('click', (e) => {
+            if (e.target === canvas) {
+                clearSelection();
+            }
+        });
+
+        // Stage system
+        let currentStageIndex = 0;
+        const stages = [
+            {
+                title: "Stage 1: Small Office Network",
+                brief: "V, choom - Arasaka Tower casts its shadow over Night City, but you need to secure this gig first. Maine's crew used to protect small offices like this before cyberpsychosis took him. Build chrome that honors their memory and keeps 15 employees safe from Arasaka's digital claws.",
+                requirements: [
+                    "1 Internet connection (Maine's old security protocols)",
+                    "10 PCs for workstations (Dorio-grade protection)", 
+                    "5 Phones for mobile work (Pilar's encrypted comms)",
+                    "Proper network security (prevent what happened to Maine)"
+                ],
+                validation: {
+                    internet: { min: 1, max: 1 },
+                    pc: { min: 10, max: 10 },
+                    phone: { min: 5, max: 5 },
+                    modem: { min: 1, max: 1 },
+                    switch: { min: 1, max: 1 },
+                    server: { min: 0, max: 0 }
+                }
+            },
+            {
+                title: "Stage 2: Co-Working Space Network",
+                brief: "Choom, Arasaka Tower's surveillance reaches everywhere in Night City, even here. This co-working space reminds you of Maine's crew hideout - where Kiwi, Rebecca, and Falco used to plan gigs against the corpo bastards. Build chrome that would make Maine proud and keep 50 edgerunners connected without losing their minds to cyberpsychosis.",
+                requirements: [
+                    "High-speed internet (Rebecca's explosive bandwidth)",
+                    "Full WiFi coverage (Kiwi's netrunner-grade signals)",
+                    "20 PCs as fixed workstations (Falco's reliable chrome)",
+                    "30 Phones for mobile users (Maine's crew coordination)",
+                    "Bandwidth management (prevent Maine's fate)"
+                ],
+                validation: {
+                    internet: { min: 1, max: 2 },
+                    pc: { min: 20, max: 20 },
+                    phone: { min: 30, max: 30 },
+                    modem: { min: 1, max: 2 },
+                    switch: { min: 2, max: 5 },
+                    server: { min: 1, max: 2 }
+                }
+            },
+            {
+                title: "Stage 3: Digital Classroom Network",
+                brief: "V... This school sits in Arasaka Tower's shadow, where corpo influence corrupts everything. This is where David Martinez started his journey before Maine took him in. The tower looms over these kids' futures like a digital prison. Build a network that protects these kids from the chrome addiction that consumed Maine's crew.",
+                requirements: [
+                    "Reliable internet (David's innocent beginnings)",
+                    "1 PC for teacher/presenter (Gloria Martinez memorial)",
+                    "30 Phones for students (protect them from David's fate)",
+                    "Strict access control (prevent early chrome exposure)",
+                    "Monitoring system (watch for Arasaka infiltration)"
+                ],
+                validation: {
+                    internet: { min: 1, max: 1 },
+                    pc: { min: 1, max: 1 },
+                    phone: { min: 30, max: 30 },
+                    modem: { min: 1, max: 1 },
+                    switch: { min: 2, max: 4 },
+                    server: { min: 1, max: 2 }
+                }
+            },
+            {
+                title: "Stage 4: High-Performance Gaming Café",
+                brief: "Final gig, V. Lucy's on the moon now, staring at Earth while Arasaka Tower pierces the Night City skyline like a chrome dagger. This café sits in its shadow, where David Martinez, consumed by cyberpsychosis like Maine before him, made his final assault on the tower before facing Adam Smasher. Build chrome worthy of Maine's crew - Rebecca's chaos, Kiwi's precision, Falco's loyalty, and David's dream that died in those corporate halls.",
+                requirements: [
+                    "Dedicated internet (dual connections like David's dual nature)",
+                    "25 high-spec gaming PCs (Maine's crew would be proud)",
+                    "10 ultra-spec PCs in VIP room (David's final chrome level)",
+                    "Local game cache server (Lucy's moon dreams, hidden from Arasaka's data mining)",
+                    "Zero-latency topology (faster than Adam Smasher's reflexes)"
+                ],
+                validation: {
+                    internet: { min: 2, max: 2 },
+                    pc: { min: 35, max: 35 },
+                    phone: { min: 0, max: 10 },
+                    modem: { min: 2, max: 2 },
+                    switch: { min: 3, max: 6 },
+                    server: { min: 1, max: 3 }
+                }
+            }
+        ];
+
+        function updateStageDisplay() {
+            const stage = stages[currentStageIndex];
+            document.getElementById('currentStage').textContent = stage.title;
+            document.getElementById('missionBrief').textContent = stage.brief;
+            document.getElementById('requirements').innerHTML = stage.requirements.map(req => `• ${req}`).join('<br>');
+            updateDeviceCounters();
+        }
+
+        function updateDeviceCounters() {
+            const stage = stages[currentStageIndex];
+            const deviceCounts = {};
+            
+            // Count placed devices
+            devices.forEach(device => {
+                deviceCounts[device.type] = (deviceCounts[device.type] || 0) + 1;
+            });
+
+            // Update counters for each device type
+            ['modem', 'switch', 'pc', 'phone', 'server', 'internet'].forEach(deviceType => {
+                const required = stage.validation[deviceType];
+                const placed = deviceCounts[deviceType] || 0;
+                
+                const counterElement = document.getElementById(`counter-${deviceType}`);
+                const deviceItem = document.querySelector(`[data-device="${deviceType}"]`);
+                
+                if (counterElement && deviceItem) {
+                    if (!required) {
+                        // Device not allowed in this stage
+                        counterElement.textContent = 'N/A';
+                        counterElement.style.background = '#666';
+                        counterElement.style.color = '#ccc';
+                        deviceItem.style.opacity = '0.3';
+                        deviceItem.style.cursor = 'not-allowed';
+                        deviceItem.style.pointerEvents = 'none';
+                        return;
+                    }
+                    
+                    const remaining = Math.max(0, required.min - placed);
+                    counterElement.textContent = remaining;
+                    
+                    // Update counter styling and device item state based on status
+                    if (placed >= required.max) {
+                        // At maximum or too many - DISABLE PLACEMENT
+                        if (placed > required.max) {
+                            counterElement.style.background = '#ff0040';
+                            counterElement.style.color = '#f3e600';
+                            counterElement.textContent = `+${placed - required.max}`;
+                        } else {
+                            counterElement.style.background = '#55ead4';
+                            counterElement.style.color = '#000';
+                            counterElement.textContent = '0';
+                        }
+                        // Disable device placement completely
+                        deviceItem.style.opacity = '0.4';
+                        deviceItem.style.cursor = 'not-allowed';
+                        deviceItem.style.pointerEvents = 'none';
+                    } else if (remaining === 0) {
+                        // Perfect minimum amount but can still place more
+                        counterElement.style.background = '#55ead4';
+                        counterElement.style.color = '#000';
+                        deviceItem.style.opacity = '1';
+                        deviceItem.style.cursor = 'grab';
+                        deviceItem.style.pointerEvents = 'auto';
+                    } else {
+                        // Need more
+                        counterElement.style.background = '#f3e600';
+                        counterElement.style.color = '#000';
+                        deviceItem.style.opacity = '1';
+                        deviceItem.style.cursor = 'grab';
+                        deviceItem.style.pointerEvents = 'auto';
+                    }
+                }
+            });
+        }
+
+        function nextStage() {
+            if (currentStageIndex < stages.length - 1) {
+                currentStageIndex++;
+                updateStageDisplay();
+                clearAll();
+            } else {
+                showModal("LEGENDARY NETRUNNER STATUS!", 
+                    `Preem work, V! You've honored Maine's crew and David's memory!\n\n` +
+                    `Arasaka Tower Breach Report: "Network security exceeded corporate standards. David's assault on our tower inspired this chrome."\n\n` +
+                    `Maine's Ghost: "You kept the crew's legacy alive, V. No cyberpsychosis could break these networks."\n\n` +
+                    `Rebecca's Spirit: "Explosive chrome, choom! Even I couldn't break this setup!"\n\n` +
+                    `Kiwi's Analysis: "Netrunner protocols are flawless. David's sacrifice wasn't in vain."\n\n` +
+                    `Falco's Approval: "Reliable chrome that would've saved us all."\n\n` +
+                    `Dorio's Blessing: "Protected like I protected Maine. Well done."\n\n` +
+                    `Pilar's Praise: "Comms so secure even Adam Smasher couldn't intercept!"\n\n` +
+                    `David Martinez died fighting Adam Smasher at Arasaka Tower, consumed by cyberpsychosis like Maine before him.\n` +
+                    `Lucy achieved her moon dream but lost her love, watching Earth from space.\n` +
+                    `You've built networks that honor their memory, choom.\n\n` +
+                    `Welcome to the legendary ranks of Night City's netrunners!`);
+            }
+        }
+
+        function validateNetwork() {
+            const stage = stages[currentStageIndex];
+            const deviceCounts = {};
+            
+            // Count devices
+            devices.forEach(device => {
+                deviceCounts[device.type] = (deviceCounts[device.type] || 0) + 1;
+            });
+
+            let results = [];
+            let passed = true;
+            let score = 0;
+
+            const chromeMessages = {
+                internet: { 
+                    success: [
+                        "INTERNET: Preem connection, choom! Maine's crew would approve this chrome.",
+                        "INTERNET: Faster than Jackie's bike through Heywood! Misty would be proud.",
+                        "INTERNET: Connection so stable, even Delamain's AIs are jealous.",
+                        "INTERNET: Bandwidth wider than the gap between V's expectations and reality in Night City."
+                    ],
+                    fail: [
+                        "INTERNET: Need more bandwidth or you'll flatline like David against Adam Smasher!",
+                        "INTERNET: No net access? Even Brendan the vending machine has better connectivity!",
+                        "INTERNET: Slower than Takemura's texting skills. Get more chrome, choom!",
+                        "INTERNET: Connection weaker than V's relationship with Johnny Silverhand."
+                    ],
+                    excess: [
+                        "INTERNET: Too much chrome! Even Rebecca would say that's overkill.",
+                        "INTERNET: More connections than Judy has tattoos. Tone it down, choom!",
+                        "INTERNET: Excessive bandwidth detected. Not even Alt Cunningham needs this much.",
+                        "INTERNET: More redundant than Panam's 'one last job' promises."
+                    ]
+                },
+                pc: {
+                    success: [
+                        "PCs: David Martinez and Maine's crew would be proud of this setup!",
+                        "PCs: More terminals than Lizzie's Bar has drinks. Judy approves!",
+                        "PCs: Workstations so preem, even Arasaka employees would quit to work here.",
+                        "PCs: Perfect count! Like finding a happy ending in Night City - rare but possible."
+                    ],
+                    fail: [
+                        "PCs: Not enough workstations, choom. Kiwi needs more terminals for her netrunning.",
+                        "PCs: Fewer computers than Delamain has personalities. Need more chrome!",
+                        "PCs: Less hardware than Jackie's garage. Gloria Martinez would be disappointed.",
+                        "PCs: Workstation count lower than V's chances of a peaceful retirement."
+                    ],
+                    excess: [
+                        "PCs: Overkill chrome! Falco says keep it simple or risk what happened to Maine.",
+                        "PCs: More PCs than Night City has corrupt politicians (and that's saying something).",
+                        "PCs: Excessive workstations detected. Even Militech doesn't need this many.",
+                        "PCs: More computers than Rogue has regrets about Johnny. Scale it back, choom!"
+                    ]
+                },
+                phone: {
+                    success: [
+                        "PHONES: Mobile chrome locked and loaded! Pilar's comms protocols activated.",
+                        "PHONES: More secure than Takemura's hiding spots. Preem work, V!",
+                        "PHONES: Communication setup smoother than Panam's driving (when she's not angry).",
+                        "PHONES: Mobile network tighter than Judy's wetsuit. Rebecca would approve!"
+                    ],
+                    fail: [
+                        "PHONES: Need more encrypted comms or Arasaka intercepts everything like they did to Maine.",
+                        "PHONES: Fewer phones than River has conspiracy theories. Get more chrome!",
+                        "PHONES: Communication gaps bigger than the hole in Arasaka Tower after Johnny's nuke.",
+                        "PHONES: Less mobile coverage than V has reliable friends in Night City."
+                    ],
+                    excess: [
+                        "PHONES: Too many burner phones! Even Rebecca's chaos has limits, choom.",
+                        "PHONES: More phones than Wakako has fixers on payroll. Excessive chrome detected!",
+                        "PHONES: Phone count higher than Silverhand's ego. Dial it back, V!",
+                        "PHONES: More mobiles than Night City has broken dreams. Keep it reasonable!"
+                    ]
+                },
+                modem: {
+                    success: [
+                        "MODEM: Connection chrome is bulletproof! Dorio would guard this setup personally.",
+                        "MODEM: Signal stronger than Panam's feelings for V. Preem chrome, choom!",
+                        "MODEM: Modem setup more reliable than Delamain's customer service.",
+                        "MODEM: Connection stability rivaling Jackie's loyalty. Perfect chrome!"
+                    ],
+                    fail: [
+                        "MODEM: No modem means no net access. Can't breach Arasaka without connectivity, V.",
+                        "MODEM: Missing modem like V's missing a normal life. Get chrome, choom!",
+                        "MODEM: No connection hardware? Even Brendan the vending machine has better setup!",
+                        "MODEM: Modem-less network like Night City without corruption - impossible!"
+                    ],
+                    excess: [
+                        "MODEM: Redundant chrome detected. Maine learned the hard way about too much tech.",
+                        "MODEM: More modems than Rogue has backup plans. Excessive redundancy, V!",
+                        "MODEM: Modem overkill detected. Even Alt Cunningham doesn't need this many.",
+                        "MODEM: More connection points than Johnny has complaints about corpo life."
+                    ]
+                },
+                switch: {
+                    success: [
+                        "SWITCH: Network routing chrome worthy of Maine's crew leadership!",
+                        "SWITCH: Switching setup smoother than Judy's braindance edits. Preem work!",
+                        "SWITCH: Network routing better than Delamain's pathfinding algorithms.",
+                        "SWITCH: Switch configuration tighter than Panam's tank crew coordination!"
+                    ],
+                    fail: [
+                        "SWITCH: Need switching chrome or your network fragments like Maine's mind did.",
+                        "SWITCH: No switches? Network more disconnected than V and Johnny's relationship.",
+                        "SWITCH: Missing switches like Night City's missing honest cops. Get chrome!",
+                        "SWITCH: Switch shortage worse than Night City's shortage of happy endings."
+                    ],
+                    excess: [
+                        "SWITCH: Too much switching chrome! David's cyberpsychosis started with excess like this.",
+                        "SWITCH: More switches than Takemura has formal speech patterns. Tone it down!",
+                        "SWITCH: Switch overload detected. Even Kiwi's netrunning rig isn't this complex.",
+                        "SWITCH: More routing than V's complicated love life. Keep it simple, choom!"
+                    ]
+                },
+                server: {
+                    success: [
+                        "SERVER: Anti-Arasaka server chrome running smooth and secure!",
+                        "SERVER: Server setup more stable than V's mental health. Impressive chrome!",
+                        "SERVER: Data processing smoother than Judy's underwater sequences.",
+                        "SERVER: Server configuration tighter than Militech's security (before V broke it)."
+                    ],
+                    fail: [
+                        "SERVER: Need server chrome for data processing, choom. Kiwi demands it.",
+                        "SERVER: No servers? Data storage worse than V's apartment organization.",
+                        "SERVER: Missing servers like Night City's missing a competent mayor.",
+                        "SERVER: Server shortage more critical than V's relic situation!"
+                    ],
+                    excess: [
+                        "SERVER: Server overload detected! Risk of cyberpsychosis like what took Maine and David.",
+                        "SERVER: More servers than Arasaka has dirty secrets (and that's impressive).",
+                        "SERVER: Server farm bigger than Panam's attitude. Scale it back, V!",
+                        "SERVER: More processing power than Johnny's ego needs. Excessive chrome detected!"
+                    ]
+                }
+            };
+
+            // Check each requirement
+            Object.keys(stage.validation).forEach(deviceType => {
+                const required = stage.validation[deviceType];
+                const actual = deviceCounts[deviceType] || 0;
+                
+                if (actual < required.min) {
+                    const messages = chromeMessages[deviceType]?.fail || [`❌ ${deviceType.toUpperCase()}: Need ${required.min}, have ${actual}`];
+                    results.push(Array.isArray(messages) ? messages[Math.floor(Math.random() * messages.length)] : messages);
+                    passed = false;
+                } else if (actual > required.max) {
+                    const messages = chromeMessages[deviceType]?.excess || [`⚠️ ${deviceType.toUpperCase()}: Too many! Max ${required.max}, have ${actual}`];
+                    results.push(Array.isArray(messages) ? messages[Math.floor(Math.random() * messages.length)] : messages);
+                    passed = false;
+                } else {
+                    const messages = chromeMessages[deviceType]?.success || [`✅ ${deviceType.toUpperCase()}: Perfect! (${actual})`];
+                    results.push(Array.isArray(messages) ? messages[Math.floor(Math.random() * messages.length)] : messages);
+                    score += 10;
+                }
+            });
+
+            // Check connectivity
+            const hasInternet = devices.some(d => d.type === 'internet');
+            const hasModem = devices.some(d => d.type === 'modem');
+            
+            if (hasInternet && hasModem) {
+                const internetDevice = devices.find(d => d.type === 'internet');
+                const modemDevice = devices.find(d => d.type === 'modem');
+                const isConnected = connections.some(conn => 
+                    (conn.device1 === internetDevice.id && conn.device2 === modemDevice.id) ||
+                    (conn.device1 === modemDevice.id && conn.device2 === internetDevice.id)
+                );
+                
+                if (isConnected) {
+                    const connectivitySuccess = [
+                        "CONNECTIVITY: Preem! Net access secured against Arasaka interference, choom!",
+                        "CONNECTIVITY: Connection tighter than Judy and Evelyn's friendship (before the betrayal)!",
+                        "CONNECTIVITY: Internet link more stable than V's relationship with their relic!",
+                        "CONNECTIVITY: Network connection smoother than Panam's tank driving skills!"
+                    ];
+                    results.push(connectivitySuccess[Math.floor(Math.random() * connectivitySuccess.length)]);
+                    score += 20;
+                } else {
+                    const connectivityFail = [
+                        "CONNECTIVITY: Chrome's disconnected! Link internet to modem or go cyberpsycho!",
+                        "CONNECTIVITY: More disconnected than V and their corpo past. Connect the chrome!",
+                        "CONNECTIVITY: Network gap bigger than the trust issues between V and Takemura!",
+                        "CONNECTIVITY: Connection missing like Jackie from the rest of the game. Fix it, choom!"
+                    ];
+                    results.push(connectivityFail[Math.floor(Math.random() * connectivityFail.length)]);
+                    passed = false;
+                }
+            }
+
+            // Check if all devices are connected to the network
+            const connectedDevices = new Set();
+            connections.forEach(conn => {
+                connectedDevices.add(conn.device1);
+                connectedDevices.add(conn.device2);
+            });
+
+            const isolatedDevices = devices.filter(d => !connectedDevices.has(d.id));
+            if (isolatedDevices.length > 0) {
+                const isolationFail = [
+                    `ISOLATION: ${isolatedDevices.length} devices flatlined! Arasaka will exploit disconnected chrome!`,
+                    `ISOLATION: ${isolatedDevices.length} devices more isolated than V in the Badlands!`,
+                    `ISOLATION: ${isolatedDevices.length} disconnected devices! Lonelier than Johnny in V's head!`,
+                    `ISOLATION: ${isolatedDevices.length} devices abandoned like Judy's diving equipment!`
+                ];
+                results.push(isolationFail[Math.floor(Math.random() * isolationFail.length)]);
+                passed = false;
+            } else if (devices.length > 0) {
+                const networkSuccess = [
+                    "NETWORK: All chrome connected! David Martinez's legacy lives on, V!",
+                    "NETWORK: Perfect connectivity! Tighter than Maine's crew before the cyberpsychosis!",
+                    "NETWORK: Network unity stronger than the bond between V and Jackie (RIP choom)!",
+                    "NETWORK: All devices linked! More connected than Night City's criminal underworld!"
+                ];
+                results.push(networkSuccess[Math.floor(Math.random() * networkSuccess.length)]);
+                score += 15;
+            }
+
+            // Show results with cyberpunk flavor
+            let title, finalMessage;
+            if (passed) {
+                const successMessages = [
+                    "PREEM WORK, CHOOM!",
+                    "CHROME PERFECTION!",
+                    "LEGENDARY STATUS!",
+                    "NETRUNNER APPROVED!",
+                    "LUCY WOULD BE PROUD!",
+                    "MAINE'S CREW LEGACY!",
+                    "NIGHT CITY'S FINEST!"
+                ];
+                const successFinalMessages = [
+                    `Lucy's Analysis: "Network chrome is bulletproof!"\nJohnny Silverhand: "Not bad for corpo tech."\nDavid Martinez would be proud, V!`,
+                    `Judy's Review: "Preem setup, V! Better than my braindance rig!"\nPanam's Approval: "Solid chrome, would trust this in the Badlands."\nJackie's Ghost: "¡Órale! That's some fine work, hermano!"`,
+                    `Takemura's Assessment: "Impressive network architecture, V-san."\nRiver's Analysis: "Security tighter than NCPD evidence lockers."\nRogue's Verdict: "Chrome worthy of the Afterlife's best."`,
+                    `Alt Cunningham: "Network topology exceeds Arasaka standards."\nDelamain: "Connectivity parameters are within optimal ranges."\nMisty: "The cards say this network has good karma, V!"`
+                ];
+                title = successMessages[Math.floor(Math.random() * successMessages.length)];
+                finalMessage = successFinalMessages[Math.floor(Math.random() * successFinalMessages.length)];
+            } else {
+                const failMessages = [
+                    "CHROME MALFUNCTION!",
+                    "NETWORK FLATLINED!",
+                    "CYBERPSYCHO RISK!",
+                    "ARASAKA DETECTED!",
+                    "REBECCA'S DISAPPOINTMENT!",
+                    "ADAM SMASHER APPROVED!",
+                    "CORPO INFILTRATION!"
+                ];
+                const failFinalMessages = [
+                    `Arasaka Tower Analysis: "Network vulnerabilities detected!"\nJohnny Silverhand: "Pathetic. Even Arasaka does better."\nMorgan Blackhand wouldn't approve this setup, choom.`,
+                    `Adam Smasher: "Weak network. I could breach this with my eyes closed."\nArasaka Netwatch: "Security flaws detected. Recommend immediate overhaul."\nKiwi's Ghost: "This chrome would've gotten Maine's crew flatlined."`,
+                    `Militech Assessment: "Substandard network detected. Arasaka tech superior."\nTrauma Team: "Network failure imminent. Prepare for casualties."\nMaxTac: "Chrome this bad attracts cyberpsychos like honey."`,
+                    `Brendan (Vending Machine): "Even I have better network security!"\nDelamain (Glitched): "ERROR: Network topology insufficient for basic operations."\nWakako: "Disappointing work. My grandmother's setup is more secure."`
+                ];
+                title = failMessages[Math.floor(Math.random() * failMessages.length)];
+                finalMessage = failFinalMessages[Math.floor(Math.random() * failFinalMessages.length)];
+            }
+            
+            const message = results.join('\n\n') + `\n\nChrome Rating: ${score}/100\n\n${finalMessage}`;
+            
+            showModal(title, message);
+        }
+
+        function showModal(title, message) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('validationModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('validationModal').style.display = 'none';
+        }
+
+        // Initialize
+        updateStageDisplay();
+        updateStats();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9953b9017101ce41',t:'MTc2MTU4NDE0My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
